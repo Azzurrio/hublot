@@ -31,7 +31,7 @@ module Hublot
 
 private
   def just_now
-    'just now'
+    I18n.t('pretty.just_now')
   end
 
   def just_now?
@@ -39,7 +39,7 @@ private
   end
 
   def a_second_ago
-    'a second ago'
+    I18n.t('pretty.second_ago')
   end
 
   def a_second_ago?
@@ -47,7 +47,7 @@ private
   end
 
   def seconds_ago
-    @expired.to_s+' seconds ago'
+    @expired.send(I18n.locale) + " " + I18n.t('pretty.seconds_ago')
   end
 
   def seconds_ago?
@@ -55,7 +55,7 @@ private
   end
 
   def a_minute_ago
-    'a minute ago'
+    I18n.t('pretty.minute_ago')
   end
 
   def a_minute_ago?
@@ -63,7 +63,7 @@ private
   end
 
   def minutes_ago
-    (@expired/60).to_i.to_s+' minutes ago'
+    (@expired/60).to_i.send(I18n.locale) + " " + I18n.t('pretty.minutes_ago')
   end
 
   def minutes_ago?
@@ -71,7 +71,7 @@ private
   end
 
   def an_hour_ago
-    'an hour ago'
+    I18n.t('pretty.hour_ago')
   end
 
   def an_hour_ago?
@@ -79,7 +79,7 @@ private
   end
 
   def today
-    "Today at#{timeify}"
+    I18n.t('pretty.today') + " " + I18n.t('pretty.at') + localize_time(timeify)
   end
 
   def timeify
@@ -91,23 +91,27 @@ private
   end
 
   def yesterday
-    "Yesterday at#{timeify}"
+    I18n.t('pretty.yesterday') + " " + I18n.t('pretty.at') + localize_time(timeify)
   end
 
   def is_yesterday?
-    (@days[@today] - @days[@created] == 1 || @days[@created] + @days[@today] == 8) && @expired <= 172800 
+    (@days[@today] - @days[@created] == 1 || @days[@created] + @days[@today] == 8) && @expired <= 172800
   end
 
   def this_week
-    "#{@created} at#{timeify}"
+    localize_day(@created) + " " + I18n.t('pretty.at') + localize_time(timeify)
   end
 
   def this_week?
-    @expired <= 604800 && @days[@today] - @days[@created] != 0 
+    @expired <= 604800 && @days[@today] - @days[@created] != 0
   end
 
   def last_week
-    "Last #{@created} at#{timeify}"
+    if I18n.locale == :ar
+      localize_day(@created) + " " + I18n.t('pretty.last') + " " + I18n.t('pretty.at') + localize_time(timeify)
+    else
+      I18n.t('pretty.last') + " " + localize_day(@created) + " " + I18n.t('pretty.at') + localize_time(timeify)
+    end
   end
 
   def last_week?
@@ -116,5 +120,19 @@ private
 
   def datetimefiesta
     self.strftime("%A, %B %e at%l:%M%p")
+  end
+
+  def localize_time(timeify)
+    if I18n.locale == :en
+      timeify
+    else
+      clock = timeify.split(' ').first.split(':').map{|e| e.to_i.ar}.join(':')
+      time = timeify.split(' ').last == 'AM' ? I18n.t('pretty.am') : I18n.t('pretty.pm')
+      " #{clock} #{time}"
+    end
+  end
+
+  def localize_day(day)
+    I18n.t("pretty.#{day.downcase}")
   end
 end
